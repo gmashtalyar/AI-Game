@@ -31,8 +31,73 @@ class Bird:
         self.height = self.y
 
     def move(self):
-        print("move")
+        self.tick_count += 1
+        d = self.velocity*self.tick_count + 1.5*self.tick_count**2
 
-while True:
-    bird.move()
+        if d >= 16:
+            d = 16
+        if d < 0:
+            d -= 2
+
+        self.y = self.y + d
+
+        if d < 0 or self.y < self.height + 50:
+            if self.tilt < self.MAX_ROTATION:
+                self.tilt = self.MAX_ROTATION
+        else:
+            if self.tilt > -90:
+                self.tilt -= self.ROTATION_VELOCITY
+
+    def draw(self, win):
+        self.image_count += 1
+
+        if self.image_count < self.ANIMATION_TIME:
+            self.image = self.IMAGES[0]
+        elif self.image_count < self.ANIMATION_TIME*2:
+            self.image = self.IMAGES[1]
+        elif self.image_count < self.ANIMATION_TIME*3:
+            self.image = self.IMAGES[2]
+        elif self.image_count < self.ANIMATION_TIME*4:
+            self.image = self.IMAGES[1]
+        elif self.image_count == self.ANIMATION_TIME*4 +1:
+            self.image = self.IMAGES[0]
+            self.image_count = 0
+
+        if self.tilt <= 80:
+            self.image = self.IMAGES[1]
+            self.image_count = self.ANIMATION_TIME*2
+
+        rotated_image = pygame.transform.rotate(self.image, self.tilt)
+        new_rectangle = rotated_image.get_rect(center=self.image.get_rect(topleft=(self.x, self.y)).center)
+        win.blit(rotated_image, new_rectangle.topleft)
+
+    def get_mask(self):
+        return pygame.mask.from_surface(self.image)
+
+
+def draw_window(win, bird):
+    win.blit(BACKGROUND_IMAGE, (0, 0))
+    bird.draw(win)
+    pygame.display.update()
+
+
+def main():
+    bird = Bird(200, 200)
+    win = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    clock = pygame.time.Clock()
+
+    run = True
+    while run:
+        clock.tick(30)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+        # bird.move()
+        draw_window(win, bird)
+    pygame.quit()
+    quit()
+
+main()
+
+
 
